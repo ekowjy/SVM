@@ -35,9 +35,13 @@ $$
 \end{aligned}
 $$
 
-Bobot ($w$) kemudian dikonstruksi dari pengali Lagrange ($\alpha$):
+Setelah mendapatkan nilai optimal $\alpha$, vektor bobot ($w$) dikonstruksi menggunakan persamaan:
 
 $$ w = \sum_{i=1}^{n} \alpha_i y_i x_i $$
+
+Sedangkan untuk nilai bias ($b$), dapat dihitung dari setiap *support vector* ($0 < \alpha_i$) menggunakan:
+
+$$ b = y_i - w \cdot x_i $$
 
 ## 🚀 Cara Menjalankan
 
