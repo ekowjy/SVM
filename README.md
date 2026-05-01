@@ -23,11 +23,15 @@ Sebuah aplikasi web interaktif berbasis Flask yang dirancang untuk membantu maha
 
 ## 📐 Konsep SVM yang Diimplementasikan
 
-Proyek ini mendemonstrasikan penyelesaian **SVM Dual Problem**:
+### SVM Dual Problem Objective
+
+Tujuan dari optimasi ini adalah untuk memaksimalkan fungsi $L(\alpha)$ terhadap $\alpha$:
 
 $$
 \begin{aligned}
-L(\alpha) &= \sum_{i=1}^{n} \alpha_i - \frac{1}{2} \sum_{i,j=1}^{n} \alpha_i \alpha_j y_i y_j (x_i \cdot x_j)
+\max_{\alpha} \quad & \sum_{i=1}^{n} \alpha_i - \frac{1}{2} \sum_{i,j=1}^{n} \alpha_i \alpha_j y_i y_j (x_i \cdot x_j) \\
+\text{dengan syarat:} \quad & \sum_{i=1}^{n} \alpha_i y_i = 0 \\
+& \alpha_i \geq 0
 \end{aligned}
 $$
 
