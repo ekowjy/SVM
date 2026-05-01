@@ -1,0 +1,88 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header class="page-header">
+    <h1>SVM Machine Learning Pipeline</h1>
+    <p>Alur kerja dari data mentah hingga menjadi keputusan klasifikasi.</p>
+</header>
+
+<style>
+    .pipeline-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 1.5rem;
+        padding: 2rem 0;
+    }
+    .pipeline-node {
+        width: 300px;
+        background: white;
+        border: 2px solid var(--border-color);
+        border-radius: var(--radius-md);
+        padding: 1.5rem;
+        text-align: center;
+        position: relative;
+        box-shadow: var(--shadow-sm);
+        transition: all 0.3s ease;
+    }
+    .pipeline-node:hover {
+        border-color: var(--brand-accent);
+        transform: translateY(-5px);
+        box-shadow: var(--shadow-md);
+    }
+    .pipeline-node i {
+        margin-bottom: 0.75rem;
+        color: var(--brand-accent);
+    }
+    .pipeline-arrow {
+        color: var(--text-muted);
+        animation: bounceDown 2s infinite;
+    }
+    @keyframes bounceDown { 
+        0%, 20%, 50%, 80%, 100% {transform: translateY(0);} 
+        40% {transform: translateY(10px);} 
+        60% {transform: translateY(5px);} 
+    }
+</style>
+
+<div class="pipeline-container">
+    <!-- Node 1 -->
+    <div class="pipeline-node">
+        <i data-lucide="database" size="32"></i>
+        <h4>1. Raw Data Input</h4>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Input berupa angka mentah (Total Belanja, Usia, dsb) dari database pelanggan.</p>
+    </div>
+    
+    <div class="pipeline-arrow"><i data-lucide="arrow-down"></i></div>
+
+    <!-- Node 2 -->
+    <div class="pipeline-node" style="border-style: dashed;">
+        <i data-lucide="sliders" size="32"></i>
+        <h4>2. Preprocessing</h4>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Normalisasi data agar memiliki rentang yang serupa (misal: Total Belanja / 10^6).</p>
+    </div>
+
+    <div class="pipeline-arrow"><i data-lucide="arrow-down"></i></div>
+
+    <!-- Node 3 -->
+    <div class="pipeline-node" style="background: var(--brand-accent-soft); border-color: var(--brand-accent);">
+        <i data-lucide="cpu" size="32"></i>
+        <h4>3. SVM Algorithm</h4>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Menghitung <em>Score</em> menggunakan Vektor Bobot (\(w\)) dan Bias (\(b\)) yang optimal.</p>
+    </div>
+
+    <div class="pipeline-arrow"><i data-lucide="arrow-down"></i></div>
+
+    <!-- Node 4 -->
+    <div class="pipeline-node">
+        <i data-lucide="check-circle" size="32"></i>
+        <h4>4. Classification Output</h4>
+        <p style="font-size: 0.85rem; color: var(--text-secondary);">Output akhir: Penentuan Label <strong>+1 (Loyal)</strong> atau <strong>-1 (Reguler)</strong>.</p>
+    </div>
+</div>
+
+<div class="card" style="margin-top: 3rem;">
+    <h3 class="card-title"><i data-lucide="award"></i> Keunggulan Pipeline SVM</h3>
+    <p>Dibandingkan algoritma lain, SVM sangat tangguh dalam menangani data dengan <em>outlier</em> karena ia hanya fokus pada data yang berada di dekat garis pemisah (Support Vectors).</p>
+</div>
+{% endblock %}

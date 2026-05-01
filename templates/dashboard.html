@@ -1,0 +1,309 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header class="page-header">
+    <h1>Ringkasan Dataset</h1>
+    <p>Analisis pola belanja pelanggan untuk klasifikasi Loyalitas menggunakan <strong>Linear SVM</strong>.</p>
+</header>
+
+<div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-bottom: 2rem;">
+    <div class="card">
+        <h3 class="card-title"><i data-lucide="bar-chart-3" style="color: var(--brand-accent)"></i> Distribusi Belanja
+        </h3>
+        <div style="height: 250px; position: relative;"><canvas id="datasetChart"></canvas></div>
+    </div>
+    <div class="card">
+        <h3 class="card-title"><i data-lucide="weight" style="color: var(--brand-accent)"></i> Bobot Pengaruh (Feature
+            Importance)</h3>
+        <div style="height: 250px; position: relative;"><canvas id="importanceChart"></canvas></div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom: 2rem;">
+    <h3 class="card-title"><i data-lucide="crosshair" style="color: var(--brand-accent)"></i> Visualisasi 2D: Node &
+        Hyperplane</h3>
+    <p style="font-size: 0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">Memetakan sebaran data berdasarkan
+        <strong>Total Belanja</strong> vs <strong>Usia</strong>. Garis biru adalah batas keputusan (Hyperplane).</p>
+
+    <div
+        style="display: flex; gap: 1.5rem; margin-bottom: 1rem; font-size: 0.75rem; color: var(--text-secondary); background: var(--bg-main); padding: 8px 12px; border-radius: var(--radius-sm); border-left: 3px solid var(--brand-accent);">
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="width: 10px; height: 10px; background: #64748b; border-radius: 50%;"></div>
+            <span><strong>Lingkaran:</strong> Data Biasa</span>
+        </div>
+        <div style="display: flex; align-items: center; gap: 6px;">
+            <div style="width: 10px; height: 10px; background: #64748b; transform: rotate(45deg);"></div>
+            <span><strong>Diamond:</strong> Support Vector (Titik Penentu Garis)</span>
+        </div>
+    </div>
+
+    <div style="height: 400px; position: relative;"><canvas id="boundaryChart"></canvas></div>
+</div>
+
+<div class="card" style="background: var(--brand-primary); color: white;">
+    <h3 class="card-title" style="color: white;">
+        <i data-lucide="help-circle" style="color: var(--brand-accent)"></i>
+        Apa yang Diprediksi Model Ini?
+    </h3>
+    <p style="color: var(--text-muted);">Berdasarkan bobot (\(w\)) yang digunakan, model ini membagi pelanggan menjadi 2
+        karakter utama:</p>
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem; margin-top: 1.5rem;">
+        <div
+            style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--sentiment-success);">
+            <h4 style="color: white; margin-bottom: 0.5rem;">Loyal (+1)</h4>
+            <p style="font-size: 0.85rem; color: #cbd5e1;">Pelanggan "Matang". Biasanya berusia lebih tua namun belanja
+                lebih terukur (efisien). Dalam konteks ini, loyalitas dilihat dari <strong>stabilitas
+                    demografi</strong>.</p>
+        </div>
+        <div
+            style="background: rgba(255,255,255,0.05); padding: 1rem; border-radius: var(--radius-sm); border-left: 4px solid var(--sentiment-error);">
+            <h4 style="color: white; margin-bottom: 0.5rem;">Reguler (-1)</h4>
+            <p style="font-size: 0.85rem; color: #cbd5e1;">Pelanggan "High-Volume". Cenderung lebih muda dan belanja
+                dalam jumlah besar (Total & Item tinggi). Namun, model menganggap pola ini sebagai pelanggan
+                <strong>transaksional umum</strong>.</p>
+        </div>
+    </div>
+</div>
+
+<div class="card">
+    <h3 class="card-title">
+        <i data-lucide="database" style="color: var(--brand-accent)"></i>
+        Data Sampel Pelatihan
+    </h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Total Belanja</th>
+                    <th>Item</th>
+                    <th>Usia</th>
+                    <th>Waktu (Jam)</th>
+                    <th>Weekend</th>
+                    <th>Label Asli</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for data in dataset %}
+                <tr>
+                    <td><strong>#{{ data.id }}</strong></td>
+                    <td>Rp {{ "{:,}".format(data.total) }}</td>
+                    <td>{{ data['items'] }} pcs</td>
+                    <td>{{ data.age }} thn</td>
+                    <td>{{ data.hour }}:00</td>
+                    <td>
+                        {% if data.weekend == 1 %}
+                        <span style="color: var(--sentiment-success)">Ya</span>
+                        {% else %}
+                        <span style="color: var(--text-muted)">Tidak</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <span class="badge {{ 'badge-loyal' if data.label == 1 else 'badge-reguler' }}">
+                            {{ "Loyal (+1)" if data.label == 1 else "Reguler (-1)" }}
+                        </span>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card" style="border-left: 4px solid var(--brand-accent)">
+    <h3 class="card-title">
+        <i data-lucide="lightbulb" style="color: var(--sentiment-warning)"></i>
+        Wawasan Akademik
+    </h3>
+    <p>Model ini unik karena memberikan <strong>bobot negatif</strong> pada jumlah belanja. Ini berarti model sedang
+        mencari "efisiensi belanja" sebagai indikator loyalitas, bukan sekadar nominal besar.</p>
+    <div class="alert alert-info">
+        <i data-lucide="info"></i>
+        <div>
+            <strong>Penting bagi Mahasiswa:</strong> Dalam SVM, kita bisa mengatur "apa yang penting" melalui bobot.
+            Jika Anda ingin belanja besar dianggap Loyal, Anda harus mengubah bobot \(w_{total}\) menjadi positif.
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const canvas = document.getElementById('datasetChart');
+        if (!canvas) return;
+
+        const rawData = {{ dataset | tojson | safe
+    }};
+
+    if (!rawData || rawData.length === 0) {
+        console.error('Dataset is empty');
+        return;
+    }
+
+    const labels = rawData.map(d => 'P-' + d.id);
+    const shopData = rawData.map(d => d.total / 1000000);
+    const itemData = rawData.map(d => d.items);
+
+    if (typeof Chart === 'undefined') {
+        console.error('Chart.js is not loaded');
+        canvas.parentElement.innerHTML = '<div style="color: var(--sentiment-error); padding: 20px; text-align: center;">Gagal memuat Chart.js. Mohon periksa koneksi internet Anda.</div>';
+        return;
+    }
+
+    const ctx = canvas.getContext('2d');
+    new Chart(ctx, {
+        type: 'bar',
+        data: {
+            labels: labels,
+            datasets: [
+                {
+                    label: 'Total Belanja (Juta Rp)',
+                    data: shopData,
+                    backgroundColor: 'rgba(59, 130, 246, 0.6)',
+                    borderColor: 'rgb(59, 130, 246)',
+                    borderWidth: 1,
+                    borderRadius: 4
+                },
+                {
+                    label: 'Jumlah Item',
+                    data: itemData,
+                    type: 'line',
+                    borderColor: 'rgb(16, 185, 129)',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    tension: 0.4,
+                    fill: true
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { position: 'top' }
+            },
+            scales: {
+                y: { beginAtZero: true, grid: { color: '#f1f5f9' } },
+                x: { grid: { display: false } }
+            }
+        }
+    });
+
+    // Feature Importance Chart
+    const importanceCtx = document.getElementById('importanceChart').getContext('2d');
+    const weightLabels = ['Total', 'Items', 'Usia', 'Hour', 'Weekend'];
+    const weightData = [-2.61, -5.0, 33.0, 2.0, 0.0]; // Sesuaikan dengan konstanta W
+
+    new Chart(importanceCtx, {
+        type: 'bar',
+        data: {
+            labels: weightLabels,
+            datasets: [{
+                label: 'Nilai Bobot (W)',
+                data: weightData,
+                backgroundColor: weightData.map(w => w >= 0 ? 'rgba(16, 185, 129, 0.6)' : 'rgba(239, 68, 68, 0.6)'),
+                borderColor: weightData.map(w => w >= 0 ? 'rgb(16, 185, 129)' : 'rgb(239, 68, 68)'),
+                borderWidth: 1
+            }]
+        },
+        options: {
+            indexAxis: 'y',
+            responsive: true,
+            maintainAspectRatio: false,
+            plugins: {
+                legend: { display: false },
+                tooltip: {
+                    callbacks: {
+                        afterLabel: (ctx) => {
+                            const val = ctx.raw;
+                            return val > 0 ? "Berpengaruh ke Loyal" : (val < 0 ? "Berpengaruh ke Reguler" : "Netral");
+                        }
+                    }
+                }
+            },
+            scales: {
+                x: { grid: { color: '#f1f5f9' } },
+                y: { grid: { display: false } }
+            }
+        }
+    });
+
+    // 2D Decision Boundary Chart (Nodes & Hyperplane)
+    const boundaryCtx = document.getElementById('boundaryChart').getContext('2d');
+    const svIds = [3, 7, 8]; // Support Vectors from train_svm.py
+
+    const loyalNodes = rawData.filter(d => d.label === 1).map(d => ({ x: d.total / 1000000, y: d.age, id: d.id }));
+    const regulerNodes = rawData.filter(d => d.label === -1).map(d => ({ x: d.total / 1000000, y: d.age, id: d.id }));
+
+    // Hyperplane Line calculation: w1*x + w2*y + b_eff = 0  => y = (-w1*x - b_eff) / w2
+    const w1 = -0.0882;
+    const w2 = 0.068;
+    const b_eff = -2.67; // Bias seimbang untuk memisahkan Loyal vs Reguler di 2D
+
+    const linePoints = [];
+    for (let x = 0; x <= 7; x += 0.5) {
+        const y = (-w1 * x - b_eff) / w2;
+        if (y >= 0 && y <= 85) {
+            linePoints.push({ x: x, y: y });
+        }
+    }
+
+    new Chart(boundaryCtx, {
+        type: 'scatter',
+        data: {
+            datasets: [
+                {
+                    label: 'Loyal (+1)',
+                    data: loyalNodes,
+                    backgroundColor: 'rgb(16, 185, 129)',
+                    pointRadius: loyalNodes.map(n => svIds.includes(n.id) ? 10 : 6),
+                    pointHoverRadius: 12,
+                    pointStyle: loyalNodes.map(n => svIds.includes(n.id) ? 'rectRot' : 'circle'),
+                },
+                {
+                    label: 'Reguler (-1)',
+                    data: regulerNodes,
+                    backgroundColor: 'rgb(239, 68, 68)',
+                    pointRadius: regulerNodes.map(n => svIds.includes(n.id) ? 10 : 6),
+                    pointHoverRadius: 12,
+                    pointStyle: regulerNodes.map(n => svIds.includes(n.id) ? 'rectRot' : 'circle'),
+                },
+                {
+                    label: 'Hyperplane (Decision Boundary)',
+                    data: linePoints,
+                    type: 'line',
+                    borderColor: 'rgb(79, 70, 229)',
+                    borderWidth: 4,
+                    fill: false,
+                    pointRadius: 0,
+                    showLine: true,
+                    tension: 0
+                }
+            ]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                x: {
+                    type: 'linear',
+                    title: { display: true, text: 'Total Belanja (Juta Rp)' },
+                    min: 0, max: 7
+                },
+                y: {
+                    title: { display: true, text: 'Usia' },
+                    min: 20, max: 80
+                }
+            },
+            plugins: {
+                tooltip: {
+                    callbacks: {
+                        label: (ctx) => `ID #${ctx.raw.id || 'Line'}: (${ctx.raw.x}, ${ctx.raw.y})`
+                    }
+                }
+            }
+        }
+    });
+    });
+</script>
+{% endblock %}

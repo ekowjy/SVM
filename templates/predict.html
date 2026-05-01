@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header class="page-header">
+    <h1>Uji Prediksi SVM</h1>
+    <p>Masukkan data pelanggan baru untuk melihat klasifikasi loyalitas secara instan.</p>
+</header>
+
+<div class="card">
+    <h3 class="card-title">
+        <i data-lucide="edit-3" style="color: var(--brand-accent)"></i>
+        Input Data Pelanggan
+    </h3>
+    <form method="POST">
+        <div class="form-grid">
+            <div class="input-group">
+                <label>Total Belanja (Rp)</label>
+                <input type="number" name="total" value="{{ input_data[0] if input_data else 1500000 }}" required>
+            </div>
+            <div class="input-group">
+                <label>Jumlah Item</label>
+                <input type="number" name="items" value="{{ input_data[1] if input_data else 10 }}" required>
+            </div>
+            <div class="input-group">
+                <label>Usia Pelanggan</label>
+                <input type="number" name="age" value="{{ input_data[2] if input_data else 25 }}" required>
+            </div>
+            <div class="input-group">
+                <label>Waktu Belanja (Jam)</label>
+                <input type="number" name="hour" min="0" max="23" value="{{ input_data[3] if input_data else 14 }}" required>
+            </div>
+            <div class="input-group">
+                <label>Weekend (1=Ya, 0=Tidak)</label>
+                <input type="number" name="weekend" min="0" max="1" value="{{ input_data[4] if input_data else 0 }}" required>
+            </div>
+        </div>
+        <button type="submit" class="btn-primary">
+            <i data-lucide="play"></i>
+            Jalankan Klasifikasi
+        </button>
+    </form>
+</div>
+
+{% if result %}
+<div class="card">
+    <h3 class="card-title">
+        <i data-lucide="binary" style="color: var(--brand-accent)"></i>
+        Hasil Analisis Model
+    </h3>
+    <div class="result-card">
+        <div class="result-visual {{ 'result-loyal' if 'Loyal' in result[0] else 'result-reguler' }}">
+            <i data-lucide="{{ 'smile' if 'Loyal' in result[0] else 'user-minus' }}"></i>
+        </div>
+        <div class="result-info">
+            <h3>Hasil: <strong>{{ result[0] }}</strong></h3>
+            <p>Berdasarkan model SVM, pelanggan ini termasuk kategori <strong>{{ "Prioritas (Loyal)" if 'Loyal' in result[0] else "Umum (Reguler)" }}</strong>.</p>
+        </div>
+    </div>
+
+    <!-- Interactive Spectrum -->
+    <div style="margin-top: 2rem;">
+        <div style="display: flex; justify-content: space-between; font-size: 0.8rem; color: var(--text-secondary); margin-bottom: 0.5rem;">
+            <span>Reguler (-1)</span>
+            <span>Decision Boundary (0)</span>
+            <span>Loyal (+1)</span>
+        </div>
+        <div style="height: 12px; background: #e2e8f0; border-radius: 99px; position: relative; overflow: hidden;">
+            <div id="spectrum-bar" style="height: 100%; width: 50%; position: absolute; left: 50%; transition: all 1s ease;"></div>
+            <div style="height: 100%; width: 2px; background: #475569; position: absolute; left: 50%; z-index: 2;"></div>
+        </div>
+        <div style="text-align: center; margin-top: 1rem;">
+            <span class="badge" style="background: var(--brand-accent-soft); color: var(--brand-primary); padding: 8px 16px;">
+                Skor Presisi \( f(x) = {{ result[1] }} \)
+            </span>
+        </div>
+    </div>
+
+    <div class="alert alert-info" style="margin-top: 2rem;">
+        <i data-lucide="info"></i>
+        <div>
+            <strong>Analisis Akademik:</strong> Skor <strong>{{ result[1] }}</strong> menunjukkan jarak data dari <em>Hyperplane</em>. 
+            {% if result[1] < -100 %}
+            Data berada sangat jauh di zona Reguler, menunjukkan klasifikasi yang sangat kuat.
+            {% elif result[1] > 100 %}
+            Data berada sangat jauh di zona Loyal, menunjukkan keyakinan model yang tinggi.
+            {% else %}
+            Data berada cukup dekat dengan ambang batas keputusan (margin).
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const score = {{ result[1] if result else 0 }};
+        const bar = document.getElementById('spectrum-bar');
+        if (bar) {
+            // Linear scale for visualization purposes
+            // Let's assume -1000 to 1000 is a reasonable range for visualization
+            let percent = (score / 1000) * 50; 
+            if (percent > 50) percent = 50;
+            if (percent < -50) percent = -50;
+
+            if (score >= 0) {
+                bar.style.left = '50%';
+                bar.style.width = percent + '%';
+                bar.style.backgroundColor = 'var(--sentiment-success)';
+            } else {
+                bar.style.left = (50 + percent) + '%';
+                bar.style.width = Math.abs(percent) + '%';
+                bar.style.backgroundColor = 'var(--sentiment-error)';
+            }
+        }
+    });
+</script>
+{% endblock %}

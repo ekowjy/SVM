@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SVM Academic Dashboard</title>
+    
+    <!-- Design & Typography -->
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    
+    <!-- Charts & Math -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script id="MathJax-script" async src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-mml-chtml.js"></script>
+    
+    <!-- Icons (Lucide) -->
+    <script src="https://unpkg.com/lucide@latest"></script>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <h2>SVM<span>EDU</span></h2>
+        </div>
+        
+        <nav class="nav-links">
+            <a href="/" class="nav-link {{ 'active' if request.path == '/' }}">
+                <i data-lucide="layout-dashboard"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="/langkah" class="nav-link {{ 'active' if request.path == '/langkah' }}">
+                <i data-lucide="book-open"></i>
+                <span>Langkah & Rumus</span>
+            </a>
+            <a href="/pipeline" class="nav-link {{ 'active' if request.path == '/pipeline' }}">
+                <i data-lucide="git-merge"></i>
+                <span>Pipeline Proses</span>
+            </a>
+            <a href="/evaluasi" class="nav-link {{ 'active' if request.path == '/evaluasi' }}">
+                <i data-lucide="shield-check"></i>
+                <span>Evaluasi Model</span>
+            </a>
+            <a href="/prediksi" class="nav-link {{ 'active' if request.path == '/prediksi' }}">
+                <i data-lucide="calculator"></i>
+                <span>Uji Prediksi</span>
+            </a>
+        </nav>
+    </aside>
+
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+
+    <script>
+        // Initialize Lucide icons
+        lucide.createIcons();
+    </script>
+    {% block scripts %}{% endblock %}
+</body>
+</html>

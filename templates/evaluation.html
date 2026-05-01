@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<header class="page-header">
+    <h1>Analisis Evaluasi Detil</h1>
+    <p>Memahami "Mengapa" model memberikan hasil yang benar atau salah berdasarkan ruang fitur.</p>
+</header>
+
+<!-- Metrics Overview -->
+<div style="display: grid; grid-template-columns: 1fr 2fr; gap: 2rem; margin-bottom: 2rem;">
+    <div class="card" style="text-align: center; display: flex; flex-direction: column; justify-content: center;">
+        <h3 class="card-title" style="justify-content: center;">Akurasi</h3>
+        <div style="font-size: 3.5rem; font-weight: 800; color: var(--brand-accent);">{{ accuracy | round(1) }}%</div>
+        <p style="color: var(--text-secondary);">Performa saat ini</p>
+    </div>
+    
+    <div class="card">
+        <h3 class="card-title"><i data-lucide="grid"></i> Confusion Matrix</h3>
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; text-align: center;">
+            <div style="padding: 1rem; background: var(--bg-main); border-radius: var(--radius-sm);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">True Positive (Loyal)</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--sentiment-success);">
+                    {{ results | selectattr('actual', 'equalto', 1) | selectattr('is_correct', 'equalto', true) | list | length }}
+                </div>
+            </div>
+            <div style="padding: 1rem; background: var(--bg-main); border-radius: var(--radius-sm);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">False Negative (Meleset)</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--sentiment-error);">
+                    {{ results | selectattr('actual', 'equalto', 1) | selectattr('is_correct', 'equalto', false) | list | length }}
+                </div>
+            </div>
+            <div style="padding: 1rem; background: var(--bg-main); border-radius: var(--radius-sm);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">False Positive (Meleset)</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--sentiment-error);">
+                    {{ results | selectattr('actual', 'equalto', -1) | selectattr('is_correct', 'equalto', false) | list | length }}
+                </div>
+            </div>
+            <div style="padding: 1rem; background: var(--bg-main); border-radius: var(--radius-sm);">
+                <div style="font-size: 0.75rem; color: var(--text-muted);">True Negative (Reguler)</div>
+                <div style="font-size: 1.5rem; font-weight: 700; color: var(--sentiment-success);">
+                    {{ results | selectattr('actual', 'equalto', -1) | selectattr('is_correct', 'equalto', true) | list | length }}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Detailed Table -->
+<div class="card">
+    <h3 class="card-title"><i data-lucide="list-checks"></i> Rincian Perhitungan Per Baris</h3>
+    <div class="table-container">
+        <table>
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Actual Label</th>
+                    <th>Predicted Label</th>
+                    <th>Rumus & Skor Akhir \( f(x) \)</th>
+                    <th>Status</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in results %}
+                <tr>
+                    <td><strong>#{{ r['id'] }}</strong></td>
+                    <td><span class="badge {{ 'badge-loyal' if r['actual'] == 1 else 'badge-reguler' }}">{{ "Loyal (+1)" if r['actual'] == 1 else "Reguler (-1)" }}</span></td>
+                    <td><span class="badge {{ 'badge-loyal' if r['predicted'] == 1 else 'badge-reguler' }}">{{ "Loyal (+1)" if r['predicted'] == 1 else "Reguler (-1)" }}</span></td>
+                    <td style="font-family: monospace; font-size: 0.8rem;">
+                        <div style="background: var(--bg-main); padding: 8px; border-radius: 4px; border-left: 3px solid var(--brand-accent);">
+                            (\( {{ "%+0.2f"|format(r['components']['total']) }} \)) + 
+                            (\( {{ "%+0.2f"|format(r['components']['items']) }} \)) + 
+                            <strong>(\( {{ "%+0.2f"|format(r['components']['age']) }} \))</strong> + 
+                            (\( {{ "%+0.2f"|format(r['components']['hour']) }} \)) + 
+                            (\( {{ "%+0.2f"|format(r['components']['weekend']) }} \)) + 
+                            (\( {{ B }} \)) = 
+                            <span style="font-weight: 700; color: var(--brand-primary);">{{ "%+0.3f"|format(r['score']) }}</span>
+                        </div>
+                        <div style="font-size: 0.7rem; color: var(--text-muted); margin-top: 4px;">
+                            (W_total * X_total) + (W_item * X_item) + <strong>(W_usia * X_usia)</strong> + ... + Bias
+                        </div>
+                    </td>
+                    <td>
+                        {% if r['is_correct'] %}
+                        <span style="color: var(--sentiment-success); font-weight: 600;"><i data-lucide="check" size="14"></i> Cocok</span>
+                        {% else %}
+                        <span style="color: var(--sentiment-error); font-weight: 700;"><i data-lucide="x" size="14"></i> Meleset</span>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Case Study Explanation -->
+<div class="card" style="border-left: 5px solid var(--brand-accent);">
+    <h3 class="card-title"><i data-lucide="search" style="color: var(--brand-accent)"></i> Bedah Kasus: Mengapa Meleset?</h3>
+    <p style="color: var(--text-secondary); margin-bottom: 1.5rem;">Perhatikan komponen yang <strong>Ditebalkan</strong> (Usia) pada rumus di atas.</p>
+    
+    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+        <div style="padding: 1rem; background: #fffbeb; border-radius: var(--radius-sm);">
+            <h4 style="color: #92400e; margin-bottom: 0.5rem;">Kasus ID #3 (Meleset)</h4>
+            <p style="font-size: 0.85rem; line-height: 1.5;">
+                Usia 56 tahun memberikan skor <strong>+1848.00</strong>. Komponen ini begitu besar sehingga meskipun total belanja memberikan skor negatif, hasil akhirnya tetap <strong>+251.97</strong> (Positif). Akibatnya, model salah menebak "Loyal" padahal aslinya "Reguler".
+            </p>
+        </div>
+        <div style="padding: 1rem; background: #fff5f5; border-radius: var(--radius-sm);">
+            <h4 style="color: #c53030; margin-bottom: 0.5rem;">Kasus ID #4 (Meleset)</h4>
+            <p style="font-size: 0.85rem; line-height: 1.5;">
+                Usia 45 tahun memberikan skor <strong>+1485.00</strong>. Namun ketika dijumlahkan dengan pengurang lainnya, hasilnya menjadi <strong>-34.27</strong> (sangat dekat dengan 0). Karena angka ini negatif, model salah menebak "Reguler" padahal aslinya "Loyal".
+            </p>
+        </div>
+    </div>
+</div>
+{% endblock %}
